@@ -1,0 +1,48 @@
+# Local environments
+.anaconda/
+.cache/
+.codex/
+.agents/
+.nv/
+.conda/
+.conda.broken.*/
+.venv/
+venv/
+env/
+.env
+*.env.local
+
+# Large downloads and generated assets
+data/raw/
+data/processed/
+data/active
+data/active_dataset.env
+data/assets/*.zip
+data/assets/dl3dv_scales/
+data/assets/dl3dv_*download*.py
+external/
+outputs/
+scratch/
+
+# Model checkpoints and generated reconstructions
+*.ckpt
+*.pth
+*.pt
+*.safetensors
+*.ply
+*.mp4
+*.mov
+*.avi
+
+# Python/editor noise
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.vscode/
+.idea/
+
+# Local installers
+Miniconda3-latest-Linux-x86_64.sh

@@ -1,0 +1,64 @@
+repos:
+  flowr:
+    role: primary_method
+    url: https://github.com/tobiasfshr/flowr.git
+    path: external/flowr
+    notes: Official FlowR implementation. Its install.sh creates the flowr conda env.
+  nerfstudio:
+    role: baseline_container
+    url: https://github.com/nerfstudio-project/nerfstudio.git
+    path: external/nerfstudio
+    notes: Provides Splatfacto and Nerfacto baselines.
+  instantsplat:
+    role: sparse_view_baseline
+    url: https://github.com/NVlabs/InstantSplat.git
+    path: external/InstantSplat
+    notes: Sparse-view Gaussian Splatting baseline used in DL3DV sparse-view comparisons.
+  viewcrafter:
+    role: sparse_view_baseline
+    url: https://github.com/Drexubery/ViewCrafter.git
+    path: external/ViewCrafter
+    notes: Video diffusion novel-view baseline used in DL3DV sparse-view comparisons.
+  ganerf:
+    role: dense_view_baseline
+    url: https://github.com/barbararoessle/ganerf.git
+    path: external/ganerf
+    notes: GAN-based dense-view baseline used for ScanNet++.
+  nerfbusters:
+    role: dense_view_baseline_and_dataset
+    url: https://github.com/ethanweber/nerfbusters.git
+    path: external/nerfbusters
+    notes: Baseline and benchmark for disjoint train/eval trajectories.
+  zeronvs:
+    role: appendix_few_view_baseline
+    url: https://github.com/kylesargent/ZeroNVS.git
+    path: external/ZeroNVS
+    notes: Appendix Mip-NeRF 360 comparison.
+  camp_zipnerf:
+    role: appendix_few_view_baseline
+    url: https://github.com/jonbarron/camp_zipnerf.git
+    path: external/camp_zipnerf
+    notes: Official-ish CamP/Zip-NeRF release for Zip-NeRF experiments.
+  multinerf:
+    role: reference_method
+    url: https://github.com/google-research/multinerf.git
+    path: external/multinerf
+    notes: Mip-NeRF 360 reference implementation and dataset tooling context.
+  scannetpp_toolbox:
+    role: dataset_tooling
+    url: https://github.com/scannetpp/scannetpp.git
+    path: external/scannetpp
+    notes: Official ScanNet++ toolbox and evaluation scripts.
+  dl3dv_dataset_tooling:
+    role: dataset_tooling
+    url: https://github.com/DL3DV-10K/Dataset.git
+    path: external/DL3DV-Dataset
+    notes: Official DL3DV-10K dataset scripts and terms.
+
+not_cloned:
+  reconfusion:
+    project_url: https://reconfusion.github.io/
+    reason: FlowR appendix compares to ReconFusion as a closed-source method.
+  cat3d:
+    project_url: https://cat3d.github.io/
+    reason: FlowR appendix compares to CAT3D as a closed-source method.

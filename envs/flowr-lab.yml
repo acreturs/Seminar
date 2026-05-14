@@ -1,0 +1,25 @@
+name: flowr-lab
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - pip
+  - git
+  - git-lfs
+  - wget
+  - curl
+  - unzip
+  - rsync
+  - ffmpeg
+  - make
+  - pip:
+      - gdown
+      - huggingface_hub
+      - numpy
+      - opencv-python
+      - pandas
+      - pillow
+      - pyyaml
+      - rich
+      - tqdm
