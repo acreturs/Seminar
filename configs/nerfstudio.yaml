@@ -1,0 +1,101 @@
+# Central configuration for the Colab FlowR seminar workflow.
+# Edit method lists, demo dataset, or iteration counts here.
+
+demo:
+  # Small, public, no-login dataset used as the "paper-style" example.
+  # ns-download-data nerfstudio --capture-name=poster works in Colab,
+  # but Mip-NeRF 360 garden is also referenced in the FlowR paper appendix.
+  name: mipnerf360-garden
+  source: ns-download-data        # one of: ns-download-data | url | hf
+  ns_dataset: mipnerf360          # passed to ns-download-data
+  ns_capture: garden              # capture name
+
+custom:
+  # Where uploaded / local photos live inside the repo.
+  images_dir: data/custom/images
+  processed_dir: data/custom/processed
+  matching_method: exhaustive     # ns-process-data --matching-method
+
+train:
+  default_iterations: 30000
+  viewer_port: 7007
+  output_dir: outputs
+
+# Methods that are trained on every dataset in the notebook loop.
+# `kind` selects which install path + train command the runner uses.
+methods:
+  - name: splatfacto
+    kind: nerfstudio
+    train_cmd: splatfacto
+    note: Nerfstudio 3D Gaussian Splatting baseline; comparison in DL3DV / ScanNet++ / Nerfbusters.
+  - name: splatfacto-big
+    kind: nerfstudio
+    train_cmd: splatfacto-big
+    note: Larger Splatfacto variant; closer to FlowR's "Stage 1" 3DGS.
+  - name: nerfacto
+    kind: nerfstudio
+    train_cmd: nerfacto
+    note: Nerfstudio NeRF baseline; comparison in Nerfbusters.
+  - name: instant-ngp
+    kind: nerfstudio
+    train_cmd: instant-ngp
+    note: NeRF reference / quick sanity check.
+  - name: nerfbusters
+    kind: nerfstudio-extension
+    train_cmd: nerfbusters
+    note: Installed as a Nerfstudio extension (pip install -e external/nerfbusters).
+  - name: instantsplat
+    kind: external_repo
+    repo: instantsplat
+    note: Sparse-view 3DGS baseline; run via its own train script after setup.
+  - name: viewcrafter
+    kind: external_repo
+    repo: viewcrafter
+    note: Video diffusion NVS; large weights, may exceed Colab Free GPU.
+  - name: ganerf
+    kind: external_repo
+    repo: ganerf
+    note: ScanNet++ dense-view baseline; old CUDA, often Colab-incompatible.
+  - name: zeronvs
+    kind: external_repo
+    repo: zeronvs
+    note: Mip-NeRF 360 few-view appendix baseline.
+  - name: zipnerf
+    kind: external_repo
+    repo: camp_zipnerf
+    note: JAX-based; needs separate env, runs but slow on free Colab.
+  - name: flowr
+    kind: external_repo
+    repo: flowr
+    note: |
+      Primary paper method. install.sh builds its own conda env with CUDA 12.2 + GCC 12;
+      not natively supported in Colab. Use Colab Pro/A100 and follow the README's
+      external/flowr/README.md, or run on a local box with a recent NVIDIA driver.
+
+# Public repos cloned into external/ for inspection and use.
+# Closed-source comparisons (ReconFusion, CAT3D) are referenced but not cloned.
+repos:
+  flowr:
+    url: https://github.com/tobiasfshr/flowr.git
+    path: external/flowr
+  nerfstudio:
+    url: https://github.com/nerfstudio-project/nerfstudio.git
+    path: external/nerfstudio
+  instantsplat:
+    url: https://github.com/NVlabs/InstantSplat.git
+    path: external/InstantSplat
+  viewcrafter:
+    url: https://github.com/Drexubery/ViewCrafter.git
+    path: external/ViewCrafter
+  ganerf:
+    url: https://github.com/barbararoessle/ganerf.git
+    path: external/ganerf
+  nerfbusters:
+    url: https://github.com/ethanweber/nerfbusters.git
+    path: external/nerfbusters
+  zeronvs:
+    url: https://github.com/kylesargent/ZeroNVS.git
+    path: external/ZeroNVS
+  camp_zipnerf:
+    url: https://github.com/jonbarron/camp_zipnerf.git
+    path: external/camp_zipnerf

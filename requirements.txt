@@ -1,0 +1,7 @@
+# Lightweight host requirements for running the notebook from a local Jupyter,
+# e.g. to author / lint the notebook before pushing to Colab.
+# Colab itself runs scripts/setup_colab.sh which pins the heavy CUDA stack.
+pyyaml>=6.0
+pyngrok>=7.0
+gdown>=5.0
+nbformat>=5.9

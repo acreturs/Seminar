@@ -1,134 +1,204 @@
-# FlowR Seminar Environment
+# FlowR Seminar — Eigenes Zimmer in Google Colab
 
-This workspace is set up around `2504.01647v2.pdf`, **FlowR: Flowing from Sparse to Dense 3D Reconstructions**.
+Dieses README führt dich **Schritt für Schritt** durch den ersten Lauf:
+Du hast Fotos von einem **Zimmer**, willst sie in Google Colab hochladen
+und am Ende ein 3D-Gaussian-Splatting-Modell im Browser drehen können.
 
-The goal is to keep paper reproduction and presentation examples manageable:
+Der ganze Rest (Paper-Datensätze, alle Vergleichsmethoden, ngrok-Tunnel)
+ist hier bewusst **außen vor** — siehe `notebooks/start_colab.ipynb`
+für die volle Pipeline.
 
-- `external/` contains FlowR and public comparison repos.
-- `data/raw/` contains downloaded original datasets.
-- `data/processed/` contains FlowR/Nerfstudio-ready datasets.
-- `data/active` is a symlink to the dataset or scene currently being used.
-- `outputs/` contains reconstructions, renders, metrics, and videos.
+---
 
-All of those large/generated paths are ignored by git.
+## Repo-Struktur
 
-## Quick Start
-
-```bash
-bash scripts/bootstrap_conda.sh
-source .conda/etc/profile.d/conda.sh  # only needed when conda is not globally installed
-conda activate flowr-lab
-bash scripts/clone_repos.sh --all
-bash scripts/download_flowr_assets.sh
+```
+.
+├── notebooks/start_colab.ipynb     # Vollständige Pipeline
+├── scripts/
+│   ├── setup_colab.sh              # Installation + Repos klonen
+│   ├── run_nerfstudio.sh           # ns-train Wrapper
+│   └── tunnel.py                   # ngrok für den Viewer
+├── configs/nerfstudio.yaml         # Methoden / Iterationen
+├── data/                           # Bilder + COLMAP-Output (gitignored)
+└── outputs/                        # Trainings-Resultate (gitignored)
 ```
 
-Install FlowR's actual runtime environment:
+---
 
-```bash
-bash scripts/install_flowr.sh
-source .conda/etc/profile.d/conda.sh
-conda activate flowr
+## Voraussetzungen
+
+- 20–80 Fotos vom Zimmer auf deinem Rechner (z.B. einmal langsam herumgegangen,
+  starke Überlappung, scharf, möglichst konstante Belichtung).
+- Ein Google-Konto für Colab.
+- (Optional) Repo nach GitHub gepusht — falls nicht, kannst du es alternativ
+  als ZIP in Colab hochladen.
+
+---
+
+## 1. Colab öffnen und GPU einschalten
+
+1. Browser → <https://colab.research.google.com/>
+2. **File → Open notebook → GitHub** (oder *Upload* falls noch nicht auf GitHub),
+   und `notebooks/start_colab.ipynb` öffnen.
+3. **Runtime → Change runtime type → GPU** (T4 reicht für Splatfacto).
+4. Im Notebook **nur die ersten Zellen ausführen** wie unten beschrieben.
+
+## 2. GPU prüfen (Notebook-Zelle 1)
+
+```python
+!nvidia-smi
 ```
 
-FlowR's installer creates a separate `flowr` conda environment. The `flowr-lab` env is only for orchestration, downloads, and lightweight helper scripts.
+Du solltest eine NVIDIA T4 (oder besser) sehen. Falls nicht → Runtime-Type neu setzen.
 
-## Paper Baselines
+## 3. Repo holen (Notebook-Zelle 2)
 
-Main comparisons from the paper:
+Im zweiten Code-Block die Repo-URL anpassen, dann ausführen:
 
-- DL3DV140 sparse-view: Splatfacto, InstantSplat, ViewCrafter, FlowR initial, FlowR, FlowR++.
-- ScanNet++ dense-view: Splatfacto, GANeRF, FlowR initial, FlowR, GANeRF with GAN, FlowR++.
-- Nerfbusters: Splatfacto, Nerfacto, Nerfbusters, FlowR initial, FlowR, FlowR with opacity thresholding.
-- Appendix Mip-NeRF 360 few-view: Zip-NeRF, ZeroNVS, ReconFusion, CAT3D, FlowR.
-
-See `docs/comparison_methods.md` for repo mapping and closed-source notes.
-
-## Datasets
-
-The full paper-scale datasets are very large and some require login/approval:
-
-- DL3DV-140 benchmark: about 2.1 TB full, or about 100-150 GB for 960P images.
-- DL3DV-10K training data: 730 GB to many TB depending on resolution.
-- ScanNet++: registration required; 371 GB for DSLR 2MP only, about 1.5 TB default.
-- Nerfbusters: data linked from its repo via Google Drive.
-- Mip-NeRF 360: public but large.
-
-This machine currently should not download all paper datasets at once. Use the scripts for targeted subsets and keep full datasets on an external disk if needed. See `docs/datasets.md` and `docs/paper_resources_and_dataset_generation.md`.
-
-The current local download status and custom dataset-generation workflow are documented in `docs/paper_resources_and_dataset_generation.md`.
-
-The 30-minute seminar outline is in `docs/flowr_30min_presentation_outline.md`.
-
-For selected DL3DV downloads after Hugging Face access approval:
-
-```bash
-export HF_TOKEN=<your_huggingface_token>
-bash scripts/download_flowr_assets.sh
-HASH=<scene_hash> bash scripts/download_dl3dv.sh benchmark-scene
-SUBSET=1K RESOLUTION=480P bash scripts/download_dl3dv.sh 10k
+```python
+REPO_URL = 'https://github.com/<DEIN_USER>/<DEIN_REPO>.git'
 ```
 
-## FlowR Dataset Prep
+Falls dein Repo noch nicht auf GitHub liegt, ersetze diese Zelle durch:
 
-After activating the `flowr` env:
-
-```bash
-VIEWS=12 bash scripts/prepare_flowr_dl3dv.sh
-VIEWS=24 bash scripts/prepare_flowr_dl3dv.sh
+```python
+from google.colab import files
+import zipfile, os
+uploaded = files.upload()          # ZIP des Repos hochladen
+name = next(iter(uploaded))
+with zipfile.ZipFile(name) as z:
+    z.extractall('/content')
+%cd /content/<extrahierter-ordner>
 ```
 
-For ScanNet++ after downloading it manually from the official portal:
+## 4. Setup laufen lassen (~10 Minuten)
 
-```bash
-SCANNETPP_ROOT=/path/to/scannetpp bash scripts/prepare_flowr_scannetpp.sh
+```python
+!bash scripts/setup_colab.sh
 ```
 
-Activate any processed dataset or scene:
+Das installiert COLMAP, PyTorch (CUDA 12.1), tiny-cuda-nn und Nerfstudio
+und klont die Vergleichs-Repos nach `external/`.
+**Für den ersten Zimmer-Lauf brauchst du davon nur Nerfstudio** — der Rest
+schadet aber nicht.
 
-```bash
-bash scripts/activate_dataset.sh data/processed/flowr/dl3dv140-12v
+Wenn du es noch schneller willst, ohne die Repos zu klonen:
+
+```python
+!SKIP_HEAVY=1 bash scripts/setup_colab.sh
 ```
 
-## Custom Examples
+Am Ende sollte `ns-train --help` funktionieren:
 
-Put overlapping photos into `examples/custom_scene/images/`, then:
-
-```bash
-conda activate flowr
-bash scripts/process_custom_images.sh examples/custom_scene/images my_scene
-bash scripts/run_flowr_stage1.sh data/processed/custom/my_scene
+```python
+!ns-train --help | head
 ```
 
-The Stage 1 command writes a config like `outputs/my_scene/splatfacto-instant/<timestamp>/config.yml`.
-Use that config to render the trained 3DGS model:
+## 5. Zimmer-Fotos hochladen
 
-```bash
-STAGE1_CONFIG=$(find outputs -path '*splatfacto-instant*/config.yml' | sort | tail -n 1)
-bash scripts/render_flowr.sh "$STAGE1_CONFIG"
+```python
+from google.colab import files
+import os, shutil
+os.makedirs('data/custom/images', exist_ok=True)
+uploaded = files.upload()             # alle Fotos im Datei-Dialog auswählen
+for name in uploaded:
+    shutil.move(name, f'data/custom/images/{name}')
+print(len(uploaded), 'Bilder im Pfad data/custom/images/')
 ```
 
-For a plain Nerfstudio baseline:
+Bei vielen Bildern lohnt der Umweg über Google Drive:
 
-```bash
-bash scripts/run_splatfacto_baseline.sh data/processed/custom/my_scene
+```python
+from google.colab import drive
+drive.mount('/content/drive')
+!cp /content/drive/MyDrive/zimmer/*.jpg data/custom/images/
 ```
 
-After Stage 1 and a FlowR model config are available, run the refined reconstruction path:
+## 6. COLMAP-Posen berechnen (3–15 Minuten)
 
 ```bash
-bash scripts/run_flowr_stage2.sh <stage1_config.yml> <scene_dir> <flowr_model_config.yaml> outputs/flowr/my_scene_stage2
+!ns-process-data images \
+  --data data/custom/images \
+  --output-dir data/custom/processed \
+  --matching-method exhaustive
 ```
 
-The refined model config can be rendered the same way:
+Wenn COLMAP keine Posen findet:
+- mehr Bilder mit mehr Überlappung,
+- `--matching-method sequential` falls die Reihenfolge sinnvoll ist,
+- Bilder mit Bewegungsunschärfe aussortieren.
+
+Erfolg = `data/custom/processed/transforms.json` existiert.
+
+## 7. Modell trainieren (~15–30 Minuten auf T4)
 
 ```bash
-bash scripts/render_flowr.sh <stage2_config.yml>
+!bash scripts/run_nerfstudio.sh splatfacto data/custom/processed 30000 outputs/custom/splatfacto
 ```
 
-## Checks
+Argumente: `<methode> <daten> <iterationen> <output>`.
+Für einen schnellen Smoke-Test: Iterationen auf `2000` runter.
+
+## 8. Modell im Viewer drehen
+
+Während `ns-train` läuft, druckt es die Viewer-URL. In Colab ist der lokale
+Port nicht direkt erreichbar — deswegen über ngrok tunneln:
+
+1. Token kostenlos holen: <https://dashboard.ngrok.com/get-started/your-authtoken>
+2. In einer **neuen** Colab-Zelle:
+
+```python
+import os
+os.environ['NGROK_AUTHTOKEN'] = 'DEIN_TOKEN_HIER'
+from scripts.tunnel import open_tunnel
+open_tunnel(port=7007)
+```
+
+Die ausgegebene `https://viewer.nerf.studio/?websocket_url=wss://...`-URL
+im neuen Tab öffnen → das Zimmer ist da, du kannst mit Maus/WASD navigieren.
+
+**Wichtig:** ngrok muss *während* das `ns-train` läuft offen sein.
+Praktischer Ablauf in Colab:
+- Eine Zelle startet das Training **im Hintergrund** mit `subprocess.Popen` (siehe Notebook Schritt 7).
+- Direkt danach `open_tunnel(...)` in derselben Zelle.
+
+## 9. Resultate sichern
+
+Resultate liegen in `outputs/custom/splatfacto/<run-id>/`. Zip und Download:
+
+```python
+!zip -r zimmer.zip outputs/custom/splatfacto
+from google.colab import files
+files.download('zimmer.zip')
+```
+
+Oder direkt nach Drive kopieren, falls in Schritt 5 gemountet:
 
 ```bash
-.conda/bin/python scripts/check_setup.py
+!cp -r outputs/custom/splatfacto /content/drive/MyDrive/zimmer-out/
 ```
 
-`ns-process-data` and `ns-train` are available only after the FlowR/Nerfstudio runtime is installed and the `flowr` conda environment is active.
+---
+
+## Häufige Stolpersteine
+
+| Symptom | Ursache / Fix |
+| --- | --- |
+| `ns-train: command not found` | Schritt 4 (Setup) nicht (vollständig) gelaufen. Zelle erneut ausführen. |
+| COLMAP scheitert / `transforms.json` fehlt | Zu wenige Bilder, zu wenig Überlappung, Bewegungsunschärfe. Mehr/bessere Fotos. |
+| `CUDA out of memory` | `splatfacto-big` → `splatfacto`, oder Bildauflösung runter via `--downscale-factor 2` in `ns-process-data`. |
+| Viewer-URL lädt nicht | Tunnel-Zelle vor Trainingsstart aufgerufen → erst Training starten, dann tunneln. Oder ngrok-Token leer. |
+| Colab trennt die Runtime | Kostenlose Runtime hat ~12 h Limit. Trainings-Iterationen reduzieren oder Drive-Sync nutzen, damit nichts verloren geht. |
+
+---
+
+## Nächste Schritte (wenn das Zimmer steht)
+
+- `splatfacto-big`, `nerfacto`, `instant-ngp` und `nerfbusters` mit demselben
+  `run_nerfstudio.sh`-Aufruf vergleichen — nur die erste Spalte ändern.
+- Das volle Notebook (`start_colab.ipynb` ab Schritt 4b) trainiert
+  automatisch alle Nerfstudio-Methoden auf eigenen *und* Paper-Daten und
+  legt sie nebeneinander in `outputs/`.
+- Schwergewichtige Methoden (FlowR, ViewCrafter, …) liegen in `external/`
+  bereit und werden per ihrer eigenen READMEs gestartet (FlowR braucht A100).

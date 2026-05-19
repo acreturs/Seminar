@@ -1,40 +1,4 @@
-# Local environments
-.anaconda/
-.cache/
-.codex/
-.agents/
-.nv/
-.conda/
-.conda.broken.*/
-.venv/
-venv/
-env/
-.env
-*.env.local
-
-# Large downloads and generated assets
-data/raw/
-data/processed/
-data/active
-data/active_dataset.env
-data/assets/*.zip
-data/assets/dl3dv_scales/
-data/assets/dl3dv_*download*.py
-external/
-outputs/
-scratch/
-
-# Model checkpoints and generated reconstructions
-*.ckpt
-*.pth
-*.pt
-*.safetensors
-*.ply
-*.mp4
-*.mov
-*.avi
-
-# Python/editor noise
+# Python / editor
 __pycache__/
 *.py[cod]
 .ipynb_checkpoints/
@@ -43,6 +7,30 @@ __pycache__/
 .mypy_cache/
 .vscode/
 .idea/
+.venv/
+venv/
+.env
+*.env.local
 
-# Local installers
+# Local environments / installers
+.conda/
 Miniconda3-latest-Linux-x86_64.sh
+
+# Cloned comparison repos (re-fetched by scripts/setup_colab.sh)
+external/
+
+# Generated data + outputs (keep .gitkeep)
+data/*
+!data/.gitkeep
+outputs/*
+!outputs/.gitkeep
+
+# Model + media artefacts
+*.ckpt
+*.pth
+*.pt
+*.safetensors
+*.ply
+*.mp4
+*.mov
+*.avi
