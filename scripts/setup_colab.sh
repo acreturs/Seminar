@@ -38,9 +38,11 @@ apt-get install -y -qq \
 # ---------------------------------------------------------------------------
 log "Installing PyTorch (CUDA 12.1 wheels)"
 pip install --quiet --upgrade pip
+# torch 2.5.1+cu121 ist die letzte cu121-Version mit verfuegbaren Wheels und
+# bleibt mit Nerfstudio 1.1.x sowie tiny-cuda-nn kompatibel.
 pip install --quiet \
-  torch==2.1.2+cu121 torchvision==0.16.2+cu121 \
-  --extra-index-url https://download.pytorch.org/whl/cu121
+  torch==2.5.1+cu121 torchvision==0.20.1+cu121 \
+  --index-url https://download.pytorch.org/whl/cu121
 
 log "Installing tiny-cuda-nn"
 pip install --quiet ninja
