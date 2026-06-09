@@ -5,8 +5,14 @@
 ### Define the problem (2 mins)
 - What are the inputs and outputs?
 
+  - problem ist das 3d gaussian struggled sobald es eine view nicht kennt
+  - Input eine sparse 3d reconstruction
+  - output eine 
+
 ### Motivation (3 mins)
 - Why is this problem important?
+
+
 - What are the issues of existing methods?
 
 ### Background / related works (5 mins)
